@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* Aqui definimos as cores da FeA Criativa nativamente! */
+@theme {
+  --color-marca-primaria: #3FC5B2;
+  --color-marca-secundaria: #333333;
+}

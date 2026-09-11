@@ -6,41 +6,45 @@ const listaDeProdutos = [
   {
     id: 1,
     nome: "Kit Nossa Senhora",
-    preco: "45,00",
-    imagem: "/imagens/produtos/kit-nossa-senhora.jpg",
-    mensagem: "Olá! Tenho interesse no Vaso Decorativo Low Poly."
+    preco: "74,90",
+    imagem: "./imagens/produtos/kit-nossa-senhora.jpg",
+    categoria: "Religioso",
+    mensagem: "Olá! Tenho interesse no Kit Nossa Senhora."
   },
   {
     id: 2,
-    nome: "Dragão Articulado",
-    preco: "85,00",
-    imagem: "/imagens/produtos/dragao-articulado.jpg",
-    mensagem: "Olá! Tenho interesse no Dragão Articulado."
+    nome: "Santo Expedito",
+    preco: "49,90",
+    imagem: "./imagens/produtos/Santo-Expedito.jpg",
+    categoria: "Religioso",
+    mensagem: "Olá! Tenho interesse no Santo Expedito."
   },
   {
     id: 3,
-    nome: "Suporte para Fone de Ouvido",
-    preco: "60,00",
-    imagem: "/imagens/produtos/suporte-para-fone.jpg",
-    mensagem: "Olá! Tenho interesse no Suporte para Fone."
-  },
-  {
-    id: 4,
-    nome: "Vaso decorativo",
-    preco: "60,00",
-    imagem: "/imagens/produtos/vaso-decorativo-low-poly.jpg",
-    mensagem: "Olá! Tenho interesse no vaso."
+    nome: "Logomarca FeA Criativa",
+    preco: "0,00",
+    imagem: "./imagens/Logo-fea.jpg",
+    categoria: "Decoração",
+    mensagem: "Olá! Tenho interesse na Logomarca FeA Criativa."
   }
 ];
+
+// Lista de categorias que aparecerão nos botões
+const categorias = ["Todos", "Religioso", "Decoração", "Geek", "Acessórios"];
 
 export default function App() {
   // 1. Criamos o "estado" para guardar o que o usuário digita
   const [termoBusca, setTermoBusca] = useState("");
+  // 2. Novo estado para a categoria (o padrão é mostrar "Todos")
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todos");
 
-  // 2. Filtramos a lista baseada no que foi digitado (ignorando maiúsculas/minúsculas)
-  const produtosFiltrados = listaDeProdutos.filter((produto) =>
-    produto.nome.toLowerCase().includes(termoBusca.toLowerCase())
-  );
+  // 3. Filtramos a lista baseada no que foi digitado (ignorando maiúsculas/minúsculas)
+  const produtosFiltrados = listaDeProdutos.filter((produto) => {
+    const matchBusca = produto.nome.toLowerCase().includes(termoBusca.toLowerCase());
+    const matchCategoria = categoriaSelecionada === "Todos" || produto.categoria === categoriaSelecionada;
+    
+    return matchBusca && matchCategoria;
+  });
 
   return (
     <div className="bg-gray-50 min-h-screen pb-10">
@@ -74,6 +78,32 @@ export default function App() {
         </div>
       </header>
 
+      {/* 4. Menu de Categorias (Logo abaixo do cabeçalho) */}
+      {/* 4. Menu de Categorias (Estilo Minimalista com Linhas) */}
+      {/* 4. Menu de Categorias (Limitado ao tamanho do Container) */}
+      <nav className="container mx-auto px-4 mt-6 mb-8">
+        <div className="w-full border-y border-gray-300 py-3 bg-transparent">
+          
+          <ul className="flex justify-center items-center overflow-x-auto whitespace-nowrap divide-x-2 divide-gray-300 scrollbar-hide">
+            {categorias.map((cat) => (
+              <li key={cat} className="px-4 first:pl-2 last:pr-2">
+                <button
+                  onClick={() => setCategoriaSelecionada(cat)}
+                  className={`font-semibold text-sm uppercase tracking-wide transition-colors ${
+                    categoriaSelecionada === cat
+                      ? "text-marca-primaria" 
+                      : "text-gray-500 hover:text-gray-900" 
+                  }`}
+                >
+                  {cat}
+                </button>
+              </li>
+            ))}
+          </ul>
+          
+        </div>
+      </nav>
+
       {/* 4. Trocamos 'listaDeProdutos' por 'produtosFiltrados' no .map */}
       <main className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {produtosFiltrados.length > 0 ? (
@@ -83,13 +113,17 @@ export default function App() {
               nome={produto.nome} 
               preco={produto.preco} 
               imagem={produto.imagem}
-              mensagemWhatsApp={`https://wa.me/5531999999999?text=${encodeURIComponent(produto.mensagem)}`} 
+              mensagemWhatsApp={`https://wa.me/5531973576633?text=${encodeURIComponent(produto.mensagem)}`} 
             />
           ))
         ) : (
           /* Mensagem caso o cliente digite algo que não existe */
           <p className="col-span-full text-center text-gray-500 mt-10 text-lg">
-            Nenhum produto encontrado com "{termoBusca}".
+            {termoBusca !== "" ? (
+              <>Nenhum produto encontrado com <strong>"{termoBusca}"</strong>.</>
+            ) : (
+              <>Nenhum produto encontrado nesta categoria.</>
+            )}
           </p>
         )}
       </main>

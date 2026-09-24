@@ -5,3 +5,12 @@
   --color-marca-primaria: #3FC5B2;
   --color-marca-secundaria: #333333;
 }
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

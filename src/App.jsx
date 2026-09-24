@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import ProdutoCard from './components/ProdutoCard';
 
 // 1. Nossa lista de produtos (Array de objetos)
@@ -9,6 +9,9 @@ const listaDeProdutos = [
     preco: "74,90",
     imagem: "./imagens/produtos/kit-nossa-senhora.jpg",
     categoria: "Religioso",
+    descricao: "Kit decorativo religioso para presentear ou compor ambientes de oração.",
+    material: "Filamento PLA",
+    tamanho: "Consulte as medidas disponíveis",
     mensagem: "Olá! Tenho interesse no Kit Nossa Senhora."
   },
   {
@@ -17,6 +20,9 @@ const listaDeProdutos = [
     preco: "49,90",
     imagem: "./imagens/produtos/Santo-Expedito.jpg",
     categoria: "Religioso",
+    descricao: "Peça decorativa de Santo Expedito com acabamento feito sob encomenda.",
+    material: "Filamento PLA",
+    tamanho: "Consulte as medidas disponíveis",
     mensagem: "Olá! Tenho interesse no Santo Expedito."
   },
   {
@@ -25,6 +31,9 @@ const listaDeProdutos = [
     preco: "0,00",
     imagem: "./imagens/Logo-fea.jpg",
     categoria: "Decoração",
+    descricao: "Modelo demonstrativo da identidade visual FeA Criativa.",
+    material: "Consulte opções de material",
+    tamanho: "Consulte as medidas disponíveis",
     mensagem: "Olá! Tenho interesse na Logomarca FeA Criativa."
   }
 ];
@@ -37,6 +46,11 @@ export default function App() {
   const [termoBusca, setTermoBusca] = useState("");
   // 2. Novo estado para a categoria (o padrão é mostrar "Todos")
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todos");
+  const categoriasRef = useRef(null);
+
+  const moverCategorias = (direcao) => {
+    categoriasRef.current?.scrollBy({ left: direcao * 120, behavior: 'smooth' });
+  };
 
   // 3. Filtramos a lista baseada no que foi digitado (ignorando maiúsculas/minúsculas)
   const produtosFiltrados = listaDeProdutos.filter((produto) => {
@@ -49,32 +63,29 @@ export default function App() {
   return (
     <div className="bg-gray-50 min-h-screen pb-10">
 
-      {/* Cabeçalho Atualizado com Flexbox */}
-      <header className="bg-marca-secundaria text-white shadow-md mb-8 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          
-          {/* 1. Logo à esquerda (ou no topo no celular) */}
-          <h1 className="text-3xl font-bold text-marca-primaria whitespace-nowrap">
-            FeA Criativa
-          </h1>
-
-          {/* 2. Área central: Onde no futuro entrarão os menus das coleções */}
-          <div className="hidden md:flex flex-1 justify-center w-full">
-            {/* Espaço reservado. Ex: <button>Decoração</button> <button>Geek</button> */}
-          </div>
-
-          {/* 3. Barra de Pesquisa à direita (canto superior) */}
-          <div className="relative w-full md:w-72">
+      <header
+        className="relative h-72 sticky top-0 z-50 overflow-hidden bg-gray-900 shadow-md md:h-[26rem]"
+      >
+        <picture className="absolute inset-0">
+          <source media="(max-width: 984px)" srcSet="./imagens/banner-fea-mobile.png" />
+          <img
+            src="./imagens/banner-fea.png"
+            alt=""
+            className="h-full w-full object-cover object-[center_75%]"
+          />
+        </picture>
+        <div className="absolute inset-0 bg-black/10" aria-hidden="true"></div>
+        <div className="container relative z-10 mx-auto flex h-full items-end justify-end px-4 pb-4">
+          <div className="relative w-full md:w-80">
             <input
               type="text"
               placeholder="Buscar peças..."
               value={termoBusca}
               onChange={(e) => setTermoBusca(e.target.value)}
-              className="w-full pl-4 pr-10 py-2 rounded-xl border border-transparent bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-marca-primaria shadow-sm"
+              className="w-full rounded-xl border border-transparent bg-white py-2 pl-4 pr-10 text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-marca-primaria"
             />
             <i className="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
           </div>
-
         </div>
       </header>
 
@@ -82,9 +93,18 @@ export default function App() {
       {/* 4. Menu de Categorias (Estilo Minimalista com Linhas) */}
       {/* 4. Menu de Categorias (Limitado ao tamanho do Container) */}
       <nav className="container mx-auto px-4 mt-6 mb-8">
-        <div className="w-full border-y border-gray-300 py-3 bg-transparent">
-          
-          <ul className="flex justify-center items-center overflow-x-auto whitespace-nowrap divide-x-2 divide-gray-300 scrollbar-hide">
+        <div className="flex w-full items-center border-y border-gray-300 bg-transparent py-3">
+          <button
+            type="button"
+            onClick={() => moverCategorias(-1)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-marca-secundaria text-lg font-bold text-white md:hidden"
+            aria-label="Ver categorias anteriores"
+            title="Categorias anteriores"
+          >
+            <i className="fas fa-chevron-left"></i>
+          </button>
+
+          <ul ref={categoriasRef} className="scrollbar-hide flex min-w-0 flex-1 items-center justify-start overflow-x-auto scroll-smooth whitespace-nowrap divide-x-2 divide-gray-300 md:justify-center">
             {categorias.map((cat) => (
               <li key={cat} className="px-4 first:pl-2 last:pr-2">
                 <button
@@ -100,12 +120,21 @@ export default function App() {
               </li>
             ))}
           </ul>
-          
+
+          <button
+            type="button"
+            onClick={() => moverCategorias(1)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-marca-secundaria text-lg font-bold text-white md:hidden"
+            aria-label="Ver mais categorias"
+            title="Mais categorias"
+          >
+            <i className="fas fa-chevron-right"></i>
+          </button>
         </div>
       </nav>
 
       {/* 4. Trocamos 'listaDeProdutos' por 'produtosFiltrados' no .map */}
-      <main className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <main className="container mx-auto grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {produtosFiltrados.length > 0 ? (
           produtosFiltrados.map((produto) => (
             <ProdutoCard 
@@ -113,6 +142,12 @@ export default function App() {
               nome={produto.nome} 
               preco={produto.preco} 
               imagem={produto.imagem}
+              categoria={produto.categoria}
+              detalhes={{
+                descricao: produto.descricao,
+                material: produto.material,
+                tamanho: produto.tamanho,
+              }}
               mensagemWhatsApp={`https://wa.me/5531973576633?text=${encodeURIComponent(produto.mensagem)}`} 
             />
           ))

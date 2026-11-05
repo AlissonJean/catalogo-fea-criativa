@@ -2,8 +2,11 @@
 
 /* Aqui definimos as cores da FeA Criativa nativamente! */
 @theme {
-  --color-marca-primaria: #3FC5B2;
-  --color-marca-secundaria: #333333;
+  --color-marca-primaria: #FF4775;
+  --color-marca-secundaria: #27AAA9;
+  --color-marca-terciaria: #8170B2;
+  --color-fundo: #FFFCF7;
+  --color-texto: #353238;
 }
 
 .scrollbar-hide {
@@ -13,4 +16,8 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+:where(button, a, input):focus-visible {
+  outline: 3px solid #8170B2;
+  outline-offset: 3px;
 }

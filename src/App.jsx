@@ -1,75 +1,94 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ProdutoCard from './components/ProdutoCard';
-
-// 1. Nossa lista de produtos (Array de objetos)
-const listaDeProdutos = [
-  {
-    id: 1,
-    nome: "Kit Nossa Senhora",
-    preco: "74,90",
-    imagem: "./imagens/produtos/kit-nossa-senhora.jpg",
-    categoria: "Religioso",
-    descricao: "Kit decorativo religioso para presentear ou compor ambientes de oração.",
-    material: "Filamento PLA",
-    tamanho: "Consulte as medidas disponíveis",
-    mensagem: "Olá! Tenho interesse no Kit Nossa Senhora."
-  },
-  {
-    id: 2,
-    nome: "Santo Expedito",
-    preco: "49,90",
-    imagem: "./imagens/produtos/Santo-Expedito.jpg",
-    categoria: "Religioso",
-    descricao: "Peça decorativa de Santo Expedito com acabamento feito sob encomenda.",
-    material: "Filamento PLA",
-    tamanho: "Consulte as medidas disponíveis",
-    mensagem: "Olá! Tenho interesse no Santo Expedito."
-  },
-  {
-    id: 3,
-    nome: "Logomarca FeA Criativa",
-    preco: "0,00",
-    imagem: "./imagens/Logo-fea.jpg",
-    categoria: "Decoração",
-    descricao: "Modelo demonstrativo da identidade visual FeA Criativa.",
-    material: "Consulte opções de material",
-    tamanho: "Consulte as medidas disponíveis",
-    mensagem: "Olá! Tenho interesse na Logomarca FeA Criativa."
-  }
-];
+import Icone from './components/Icone';
+import { listaDeProdutos } from './data/produtos';
+import { telefoneWhatsApp } from './config/loja';
+import { formatarPreco } from './utils/formatarPreco';
+import { bannerNovidade } from './config/bannerNovidade';
 
 // Lista de categorias que aparecerão nos botões
-const categorias = ["Todos", "Religioso", "Decoração", "Geek", "Acessórios"];
+const categorias = ["Todos", ...new Set(listaDeProdutos.map((produto) => produto.categoria))];
+
+const criarLinkWhatsApp = (produto) => {
+  const mensagem = `Olá! Tenho interesse em ${produto.nome}, anunciado por ${formatarPreco(produto.precoCentavos)}.`;
+  return `https://wa.me/${telefoneWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+};
+
+const normalizarTexto = (texto) => texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 export default function App() {
   // 1. Criamos o "estado" para guardar o que o usuário digita
   const [termoBusca, setTermoBusca] = useState("");
   // 2. Novo estado para a categoria (o padrão é mostrar "Todos")
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todos");
+  const [bannerAberto, setBannerAberto] = useState(bannerNovidade.ativo);
   const categoriasRef = useRef(null);
+
+  useEffect(() => {
+    if (!bannerAberto) return undefined;
+    const fecharComEscape = (event) => {
+      if (event.key === 'Escape') setBannerAberto(false);
+    };
+    document.addEventListener('keydown', fecharComEscape);
+    return () => document.removeEventListener('keydown', fecharComEscape);
+  }, [bannerAberto]);
 
   const moverCategorias = (direcao) => {
     categoriasRef.current?.scrollBy({ left: direcao * 120, behavior: 'smooth' });
   };
 
-  // 3. Filtramos a lista baseada no que foi digitado (ignorando maiúsculas/minúsculas)
+  const consulta = normalizarTexto(termoBusca.trim());
   const produtosFiltrados = listaDeProdutos.filter((produto) => {
-    const matchBusca = produto.nome.toLowerCase().includes(termoBusca.toLowerCase());
+    const textoProduto = normalizarTexto(`${produto.nome} ${produto.categoria} ${produto.descricao}`);
+    const matchBusca = textoProduto.includes(consulta);
     const matchCategoria = categoriaSelecionada === "Todos" || produto.categoria === categoriaSelecionada;
-    
+
     return matchBusca && matchCategoria;
   });
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-10">
+    <div className="bg-fundo min-h-screen pb-10">
+
+      {bannerNovidade.ativo && bannerAberto && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-gray-950/75 p-3 backdrop-blur-sm sm:p-6"
+          role="presentation"
+          onClick={() => setBannerAberto(false)}
+        >
+          <section
+            className="relative flex max-h-[94dvh] w-fit max-w-[94vw] items-center justify-center overflow-hidden rounded-2xl bg-white shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-label={bannerNovidade.descricao}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setBannerAberto(false)}
+              className="absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-texto shadow-md transition-colors hover:bg-white"
+              aria-label="Fechar banner de novidade"
+              title="Fechar"
+            >
+              <Icone nome="fechar" className="h-5 w-5" />
+            </button>
+            <img
+              src={bannerNovidade.imagem}
+              alt={bannerNovidade.descricao}
+              className="block max-h-[90dvh] max-w-[94vw] object-contain"
+              onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }}
+            />
+          </section>
+        </div>
+      )}
 
       <header
-        className="relative h-72 sticky top-0 z-50 overflow-hidden bg-gray-900 shadow-md md:h-[26rem]"
+        className="relative h-72 sticky top-0 z-50 overflow-hidden bg-marca-terciaria shadow-md md:h-[26rem]"
       >
         <picture className="absolute inset-0">
-          <source media="(max-width: 984px)" srcSet="./imagens/banner-fea-mobile.png" />
+          <source media="(max-width: 984px)" srcSet="./imagens/banner-fea-mobile.jpg" />
           <img
-            src="./imagens/banner-fea.png"
+            src="./imagens/banner-fea.jpg"
+            fetchPriority="high"
             alt=""
             className="h-full w-full object-cover object-[center_75%]"
           />
@@ -79,12 +98,13 @@ export default function App() {
           <div className="relative w-full md:w-80">
             <input
               type="text"
-              placeholder="Buscar peças..."
+              aria-label="Buscar produtos por nome, categoria ou descrição"
+              placeholder="Buscar produtos..."
               value={termoBusca}
               onChange={(e) => setTermoBusca(e.target.value)}
-              className="w-full rounded-xl border border-transparent bg-white py-2 pl-4 pr-10 text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-marca-primaria"
+              className="w-full rounded-xl border border-transparent bg-white py-2 pl-4 pr-10 text-texto shadow-sm focus:outline-none focus:ring-2 focus:ring-marca-primaria"
             />
-            <i className="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <Icone nome="busca" className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-texto/50" />
           </div>
         </div>
       </header>
@@ -92,27 +112,29 @@ export default function App() {
       {/* 4. Menu de Categorias (Logo abaixo do cabeçalho) */}
       {/* 4. Menu de Categorias (Estilo Minimalista com Linhas) */}
       {/* 4. Menu de Categorias (Limitado ao tamanho do Container) */}
-      <nav className="container mx-auto px-4 mt-6 mb-8">
-        <div className="flex w-full items-center border-y border-gray-300 bg-transparent py-3">
+      <nav className="container mx-auto px-4 mt-6 mb-8" aria-label="Categorias de produtos">
+        <div className="flex w-full items-center border-y border-texto/20 bg-transparent py-3">
           <button
             type="button"
             onClick={() => moverCategorias(-1)}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-marca-secundaria text-lg font-bold text-white md:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-marca-secundaria text-lg font-bold text-texto md:hidden"
             aria-label="Ver categorias anteriores"
             title="Categorias anteriores"
           >
-            <i className="fas fa-chevron-left"></i>
+            <Icone nome="anterior" className="h-4 w-4" />
           </button>
 
-          <ul ref={categoriasRef} className="scrollbar-hide flex min-w-0 flex-1 items-center justify-start overflow-x-auto scroll-smooth whitespace-nowrap divide-x-2 divide-gray-300 md:justify-center">
+          <ul ref={categoriasRef} className="scrollbar-hide flex min-w-0 flex-1 items-center justify-start overflow-x-auto scroll-smooth whitespace-nowrap divide-x-2 divide-texto/20 md:justify-center">
             {categorias.map((cat) => (
               <li key={cat} className="px-4 first:pl-2 last:pr-2">
                 <button
+                  type="button"
+                  aria-pressed={categoriaSelecionada === cat}
                   onClick={() => setCategoriaSelecionada(cat)}
                   className={`font-semibold text-sm uppercase tracking-wide transition-colors ${
                     categoriaSelecionada === cat
-                      ? "text-marca-primaria" 
-                      : "text-gray-500 hover:text-gray-900" 
+                      ? "text-texto underline decoration-marca-primaria decoration-2 underline-offset-4"
+                      : "text-texto/75 hover:text-texto"
                   }`}
                 >
                   {cat}
@@ -124,36 +146,39 @@ export default function App() {
           <button
             type="button"
             onClick={() => moverCategorias(1)}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-marca-secundaria text-lg font-bold text-white md:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-marca-secundaria text-lg font-bold text-texto md:hidden"
             aria-label="Ver mais categorias"
             title="Mais categorias"
           >
-            <i className="fas fa-chevron-right"></i>
+            <Icone nome="proxima" className="h-4 w-4" />
           </button>
         </div>
       </nav>
 
       {/* 4. Trocamos 'listaDeProdutos' por 'produtosFiltrados' no .map */}
       <main className="container mx-auto grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <h1 className="sr-only">Catálogo de produtos</h1>
         {produtosFiltrados.length > 0 ? (
           produtosFiltrados.map((produto) => (
-            <ProdutoCard 
-              key={produto.id} 
-              nome={produto.nome} 
-              preco={produto.preco} 
+            <ProdutoCard
+              key={produto.id}
+              nome={produto.nome}
+              precoFormatado={formatarPreco(produto.precoCentavos)}
               imagem={produto.imagem}
               categoria={produto.categoria}
+              personalizavel={produto.personalizavel}
               detalhes={{
                 descricao: produto.descricao,
                 material: produto.material,
                 tamanho: produto.tamanho,
+                cor: produto.cor,
               }}
-              mensagemWhatsApp={`https://wa.me/5531973576633?text=${encodeURIComponent(produto.mensagem)}`} 
+              mensagemWhatsApp={criarLinkWhatsApp(produto)}
             />
           ))
         ) : (
           /* Mensagem caso o cliente digite algo que não existe */
-          <p className="col-span-full text-center text-gray-500 mt-10 text-lg">
+          <p className="col-span-full text-center text-texto/75 mt-10 text-lg">
             {termoBusca !== "" ? (
               <>Nenhum produto encontrado com <strong>"{termoBusca}"</strong>.</>
             ) : (
